@@ -80,7 +80,7 @@ def main(h1, h2, number_of_epochs): # Add relevant parameters
 	# 3) You do the same as 2) but you train (this is called fine-tuning) the pretrained embeddings further. 
 	# Option 3 will be the most time consuming, so we do not recommend starting with this
 
-	model = RNN(h1, h2, 5, train_data[0][0].size()[2], 2) # Fill in parameters
+	model = RNN(h1, h2, 5, train_data[0][0].size()[2], 1) # Fill in parameters
 	optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum = 0.9) 
 	minibatch_size = 16 
 
