@@ -116,9 +116,15 @@ def main(h1, h2, number_of_epochs): # Add relevant parameters
 		print("Training accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Training time for this epoch: {}".format(time.time() - start_time))
 
-		# You may find it beneficial to keep track of training accuracy or training loss; 
-
-		# Think about how to update the model and what this entails. Consider ffnn.py and the PyTorch documentation for guidance
-
+		correct = 0 
+		total = 0
 		# You will need to validate your model. All results for Part 3 should be reported on the validation set. 
-		# Consider ffnn.py; making changes to validation if you find them necessary
+		for i in tqdm(range(len(valid_data))):
+			input_vector, gold_label = valid_data[i]
+			predicted_vector = model(input_vector.float())
+			predicted_label = torch.argmax(predicted_vector)
+			correct += int(predicted_label == gold_label)
+			total += 1
+		print("Validation completed for epoch {}".format(epoch + 1))
+		print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
+		print("Validation time for this epoch: {}".format(time.time() - start_time))
