@@ -19,16 +19,18 @@ path_to_vsm = "data/word_linear_glove_500d"
 vsm = vsmlib.model.load_from_dir(path_to_vsm)
 
 class RNN(nn.Module):
-	def __init__(self,h, output_size, input_size,  layers): # Add relevant parameters
+	def __init__(self, h1, h2, output_size, input_size,  layers): # Add relevant parameters
 		super(RNN, self).__init__()
 		# Fill in relevant parameters
-		self.h = h
+		self.h1 = h1
+		self.h2 = h2
 		self.layers = layers
 		self.output_size = output_size
 
-		self.rnn = nn.RNN(input_size, h)
+		self.rnn = nn.RNN(input_size, self.h1, num_layers=self.layers, bidirectional=False)
 		self.activation = nn.ReLU()
-		self.full = nn.Linear(h,output_size)
+		self.full1 = nn.Linear(self.h1, self.h2)
+		self.full2 = nn.Linear(self.h2, self.output_size)
 		# Ensure parameters are initialized to small values, see PyTorch documentation for guidance
 		self.softmax = nn.LogSoftmax()
 		self.loss = nn.NLLLoss()
@@ -39,11 +41,13 @@ class RNN(nn.Module):
 	def forward(self, inputs): 
 		#begin code
 		batch_size = inputs.size(1)
-		hidden = torch.zeros(1, batch_size, self.h)
+		hidden = torch.zeros(self.layers, batch_size, self.h1)
 		z1, hidden = self.rnn(inputs,hidden)
 		a1 = self.activation(z1[0][-1])
-		z2 = self.full(a1)
-		predicted_vector = self.softmax(z2) # Remember to include the predicted unnormalized scores which should be normalized into a (log) probability distribution
+		z2 = self.full1(a1)
+		a2 = self.activation(z2)
+		z3 = self.full2(a2)
+		predicted_vector = self.softmax(z3) # Remember to include the predicted unnormalized scores which should be normalized into a (log) probability distribution
 		#end code
 		return predicted_vector
 
@@ -64,7 +68,7 @@ def preprocessData(train_data):
 		data.append((torch.from_numpy(np.array([seq])),y))
 	return data 
 
-def main(hidden_dim, number_of_epochs): # Add relevant parameters
+def main(h1, h2, number_of_epochs): # Add relevant parameters
 	train_data, valid_data = fetch_data() # X_data is a list of pairs (document, y); y in {0,1,2,3,4}	
 	train_data = preprocessData(train_data)
 	valid_data = preprocessData(valid_data)
@@ -76,7 +80,7 @@ def main(hidden_dim, number_of_epochs): # Add relevant parameters
 	# 3) You do the same as 2) but you train (this is called fine-tuning) the pretrained embeddings further. 
 	# Option 3 will be the most time consuming, so we do not recommend starting with this
 
-	model = RNN(hidden_dim, 5, train_data[0][0].size()[2], 1) # Fill in parameters
+	model = RNN(h1, h2, 5, train_data[0][0].size()[2], 2) # Fill in parameters
 	optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum = 0.9) 
 	minibatch_size = 16 
 
