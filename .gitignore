@@ -3,3 +3,6 @@ __pycache__/
 assignment3_2019FA.pdf
 data/
 env/
+
+.DS_Store
+*.pyc
