@@ -7,15 +7,13 @@ FLAG = 'RNN'
 
 def main():
 	if FLAG == 'RNN':
-		hidden_dim = 32
-		number_of_epochs = 10
+		hidden_dim = 512
+		number_of_epochs = 30
 		rnn_main(hidden_dim=hidden_dim, number_of_epochs=number_of_epochs)
 	elif FLAG == 'FFNN':
 		hidden_dim = 32
 		number_of_epochs = 10
 		ffnn_main(hidden_dim=hidden_dim, number_of_epochs=number_of_epochs)
-
-
 
 if __name__ == '__main__':
 	main()

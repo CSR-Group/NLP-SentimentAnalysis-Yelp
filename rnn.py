@@ -18,7 +18,6 @@ unk = '<UNK>'
 path_to_vsm = "data/word_linear_glove_500d"
 vsm = vsmlib.model.load_from_dir(path_to_vsm)
 
-
 class RNN(nn.Module):
 	def __init__(self,h, output_size, input_size,  layers): # Add relevant parameters
 		super(RNN, self).__init__()
@@ -39,13 +38,14 @@ class RNN(nn.Module):
 
 	def forward(self, inputs): 
 		#begin code
-		hidden = torch.zeros(1, 1, self.h)
+		batch_size = inputs.size(1)
+		hidden = torch.zeros(1, batch_size, self.h)
 		z1, hidden = self.rnn(inputs,hidden)
-		predicted_vector = self.softmax(z1) # Remember to include the predicted unnormalized scores which should be normalized into a (log) probability distribution
+		a1 = self.activation(z1[0][-1])
+		z2 = self.full(a1)
+		predicted_vector = self.softmax(z2) # Remember to include the predicted unnormalized scores which should be normalized into a (log) probability distribution
 		#end code
 		return predicted_vector
-
-
 
 # You may find the functions make_vocab() and make_indices from ffnn.py useful; you are free to copy them directly (or call those functions from this file)
 
@@ -63,9 +63,6 @@ def preprocessData(train_data):
 			seq.append(getEncoding(word))
 		data.append((torch.from_numpy(np.array([seq])),y))
 	return data 
-
-
-
 
 def main(hidden_dim, number_of_epochs): # Add relevant parameters
 	train_data, valid_data = fetch_data() # X_data is a list of pairs (document, y); y in {0,1,2,3,4}	
@@ -98,7 +95,8 @@ def main(hidden_dim, number_of_epochs): # Add relevant parameters
 			loss = None
 			for example_index in range(minibatch_size):
 				input_vector, gold_label = train_data[minibatch_index * minibatch_size + example_index]
-				predicted_vector = model(input_vector)
+				# print(input_vector.shape)
+				predicted_vector = model(input_vector.float())
 				predicted_label = torch.argmax(predicted_vector)
 				correct += int(predicted_label == gold_label)
 				total += 1
@@ -120,5 +118,3 @@ def main(hidden_dim, number_of_epochs): # Add relevant parameters
 
 		# You will need to validate your model. All results for Part 3 should be reported on the validation set. 
 		# Consider ffnn.py; making changes to validation if you find them necessary
-
-main(hidden_dim=32, number_of_epochs=2)
