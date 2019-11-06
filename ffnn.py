@@ -35,7 +35,6 @@ class FFNN(nn.Module):
 		predicted_vector = self.softmax(self.activation(z2))  # BUGG - double activation
 		return predicted_vector
 
-
 # Returns: 
 # vocab = A set of strings corresponding to the vocabulary
 def make_vocab(data):
