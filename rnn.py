@@ -40,14 +40,14 @@ class RNN(nn.Module):
 
 	def forward(self, inputs): 
 		#begin code
-		batch_size = inputs.size(1)
-		hidden = torch.zeros(self.layers, batch_size, self.h1)
+		self.batch_size = inputs.size(1)
+		hidden = torch.zeros(self.layers, self.batch_size, self.h1)
 		z1, hidden = self.rnn(inputs,hidden)
-		a1 = self.activation(z1[0][-1])
-		z2 = self.full1(a1)
-		a2 = self.activation(z2)
-		z3 = self.full2(a2)
-		predicted_vector = self.softmax(z3) # Remember to include the predicted unnormalized scores which should be normalized into a (log) probability distribution
+		a1 = z1[0][-1]
+		z2 = self.full1(hidden)
+		# a2 = self.activation(z2)
+		# z3 = self.full2(a2)
+		predicted_vector = self.softmax(z2) # Remember to include the predicted unnormalized scores which should be normalized into a (log) probability distribution
 		#end code
 		return predicted_vector
 
@@ -81,8 +81,8 @@ def main(h1, h2, number_of_epochs): # Add relevant parameters
 	# Option 3 will be the most time consuming, so we do not recommend starting with this
 
 	model = RNN(h1, h2, 5, train_data[0][0].size()[2], 1) # Fill in parameters
-	optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum = 0.9) 
-	minibatch_size = 16 
+	optimizer = optim.SGD(model.parameters(), lr = 0.1, momentum = 0.0) 
+	minibatch_size = 2
 
 	for epoch in range(number_of_epochs): # How will you decide to stop training and why
 		model.train()
@@ -104,18 +104,21 @@ def main(h1, h2, number_of_epochs): # Add relevant parameters
 				predicted_label = torch.argmax(predicted_vector)
 				correct += int(predicted_label == gold_label)
 				total += 1
-				example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
-				if loss is None:
-					loss = example_loss
-				else:
-					loss += example_loss
-			loss = loss / minibatch_size	
-			loss.backward()
-			optimizer.step()
+				# example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
+				# if loss is None:
+				# 	loss = example_loss
+				# else:
+				# 	loss += example_loss
+				# loss = loss / minibatch_size	
+				loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
+				loss.backward()
+				optimizer.step()
+		print("Training avg loss {}".format(loss))
 		print("Training completed for epoch {}".format(epoch + 1))
 		print("Training accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Training time for this epoch: {}".format(time.time() - start_time))
 
+		start_time = time.time()
 		correct = 0 
 		total = 0
 		# You will need to validate your model. All results for Part 3 should be reported on the validation set. 
@@ -125,6 +128,13 @@ def main(h1, h2, number_of_epochs): # Add relevant parameters
 			predicted_label = torch.argmax(predicted_vector)
 			correct += int(predicted_label == gold_label)
 			total += 1
+			example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
+			if loss is None:
+				loss = example_loss
+			else:
+				loss += example_loss
+		loss = loss / len(valid_data)
+		print("Validation avg loss {}".format(loss))
 		print("Validation completed for epoch {}".format(epoch + 1))
 		print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Validation time for this epoch: {}".format(time.time() - start_time))
