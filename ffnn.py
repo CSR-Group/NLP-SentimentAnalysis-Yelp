@@ -19,6 +19,7 @@ class FFNN(nn.Module):
 			super(FFNN, self).__init__()
 			self.h = h
 			self.W1 = nn.Linear(input_dim, h)
+			print(input_dim)
 			self.activation = nn.ReLU() # The rectified linear unit; one valid choice of activation function
 			self.W2 = nn.Linear(h, 5)
 			# The below two lines are not a source for an error
@@ -153,4 +154,10 @@ def main(hidden_dim, number_of_epochs):
 		print("Validation completed for epoch {}".format(epoch + 1))
 		print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Validation time for this epoch: {}".format(time.time() - start_time))
+
+	pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+	for p in model.parameters():
+		if p.requires_grad:
+			print(p.numel())
+	print(pytorch_total_params)
 		
