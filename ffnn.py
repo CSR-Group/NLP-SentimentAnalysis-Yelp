@@ -190,7 +190,7 @@ def main(hidden_dim, number_of_epochs):
     # training loss 
 	iteration_list = [i+1 for i in range(number_of_epochs)]
 	plt.plot(iteration_list,train_loss_history)
-	plt.xlabel("Number of iteration")
+	plt.xlabel("Number of Epochs")
 	plt.ylabel("Training Loss")
 	plt.title("FFNN: Loss vs Number of Epochs")
     #plt.show()
