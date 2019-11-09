@@ -10,6 +10,7 @@ from pathlib import Path
 import time
 from tqdm import tqdm
 from data_loader import fetch_data
+import  matplotlib.pyplot as plt
 
 unk = '<UNK>'
 # Consult the PyTorch documentation for information on the functions used below:
@@ -86,12 +87,18 @@ def main(hidden_dim, number_of_epochs):
 	print("Vectorized data")
 
 	model = FFNN(input_dim = len(vocab), h = hidden_dim)
-	optimizer = optim.SGD(model.parameters(),lr=0.01, momentum=0.9)
+	optimizer = optim.Adagrad(model.parameters(),lr=0.01)
 	print("Training for {} epochs".format(number_of_epochs))
+
+	train_accuracy_history = []
+	val_accuracy_history = []
+	train_loss_history = []
+
 	for epoch in range(number_of_epochs):
 		model.train()
 		optimizer.zero_grad()
 		loss = None
+		totalloss = 0
 		correct = 0
 		total = 0
 		start_time = time.time()
@@ -114,8 +121,12 @@ def main(hidden_dim, number_of_epochs):
 				else:
 					loss += example_loss
 			loss = loss / minibatch_size	# BUGG - not averaging loss
+			totalloss+=loss
 			loss.backward()		# BUGGGG - loss and optimzer updated once per epoch
 			optimizer.step()
+		train_loss_history.append(totalloss/(N // minibatch_size))
+		train_accuracy_history.append(correct / total)
+
 		print("Training completed for epoch {}".format(epoch + 1))
 		print("Training accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Training time for this epoch: {}".format(time.time() - start_time))
@@ -151,13 +162,49 @@ def main(hidden_dim, number_of_epochs):
 			predicted_label = torch.argmax(predicted_vector)
 			correct += int(predicted_label == gold_label)
 			total += 1
+		val_accuracy_history.append(correct / total)
 		print("Validation completed for epoch {}".format(epoch + 1))
 		print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Validation time for this epoch: {}".format(time.time() - start_time))
 
+	# number of parameters
+	print("Number of parameters")
 	pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 	for p in model.parameters():
 		if p.requires_grad:
 			print(p.numel())
 	print(pytorch_total_params)
-		
+
+	print(train_loss_history)
+	print(train_accuracy_history)
+	print(val_accuracy_history)
+	
+    # training loss 
+	iteration_list = [i+1 for i in range(number_of_epochs)]
+	plt.plot(iteration_list,train_loss_history)
+	plt.xlabel("Number of iteration")
+	plt.ylabel("Training Loss")
+	plt.title("FFNN: Loss vs Number of iteration")
+    #plt.show()
+	plt.savefig('FFFN_train_loss_history.png')
+	plt.clf()
+    
+    # training accuracy 
+	iteration_list = [i+1 for i in range(number_of_epochs)]
+	plt.plot(iteration_list,train_accuracy_history)
+	plt.xlabel("Number of iteration")
+	plt.ylabel("Training Accuracy")
+	plt.title("FFNN: Accuracy vs Number of iteration")
+    #plt.show()
+	plt.savefig('FFNN_train_accuracy_history.png')
+	plt.clf()
+
+    # training accuracy 
+	iteration_list = [i+1 for i in range(number_of_epochs)]
+	plt.plot(iteration_list,val_accuracy_history,color = "red")
+	plt.xlabel("Number of iteration")
+	plt.ylabel("Validation Accuracy")
+	plt.title("FFNN: Accuracy vs Number of iteration")
+    #plt.show()
+	plt.savefig('FFNN_val_accuracy_history.png')
+	plt.clf()

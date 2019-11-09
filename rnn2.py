@@ -24,7 +24,7 @@ class RNN(nn.Module):
         self.hidden_dim = 50
         self.output_dim = 5
         self.num_rnn_layers = 1
-        self.nonlinearity = 'tanh'
+        self.nonlinearity = 'relu'
         self.log_softmax = nn.LogSoftmax()
         self.loss = nn.NLLLoss()
         self.rnn = nn.RNN(input_size = self.input_dim, hidden_size = self.hidden_dim, num_layers = self.num_rnn_layers, batch_first=True, nonlinearity=self.nonlinearity)
@@ -36,7 +36,7 @@ class RNN(nn.Module):
     def forward(self, inputs):
         h0 = Variable(torch.zeros(self.num_rnn_layers, inputs.size(0), self.hidden_dim))
         out, hn = self.rnn(inputs, h0)
-        z1 = self.fc(out[:, -1, :])
+        z1 = self.fc(hn[:, -1, :])
         return self.log_softmax(z1)
 
 
@@ -45,6 +45,7 @@ def performTrain(model, optimizer, train_data):
     N = len(train_data)
     correct = 0
     total = 0
+    totalloss = 0
     minibatch_size = 16
 
     for minibatch_index in tqdm(range(N // minibatch_size)):
@@ -64,8 +65,9 @@ def performTrain(model, optimizer, train_data):
         loss = loss / minibatch_size
         loss.backward()
         optimizer.step()
-    accuracy = (correct / len(train_data)) * 100
-    return loss.data, accuracy
+        totalloss +=loss
+    accuracy = (correct / total) * 100
+    return totalloss/(N // minibatch_size), accuracy
 
 def validate(model, val_data):
     correct = 0
@@ -84,22 +86,39 @@ def validate(model, val_data):
     accuracy = (correct / len(val_data)) * 100
     return loss.data, accuracy
 
-def main(num_epoch = 15):
+def main(num_epoch = 10):
+    beg_time = time.time()
     train_data,val_data = getTrainingAndValData()
     model = RNN()
-    optimizer = optim.SGD(model.parameters(),lr=0.01, momentum=0.9)
-
+    optimizer = optim.Adagrad(model.parameters(),lr=0.01)
+    train_accuracy_history = []
+    val_accuracy_history = []
     train_loss_history = []
     val_loss_history = []
     for epoch in range(num_epoch):
         model.train()
+        optimizer.zero_grad()
+        start_time = time.time()
         train_loss, train_accuracy = performTrain(model, optimizer, train_data)
-        val_loss, val_accuracy = validate(model, val_data)
-        train_loss_history.append(train_loss)
-        val_loss_history.append(val_loss)
         print("Training accuracy for epoch {}: {}".format(epoch + 1, train_accuracy))
-        print("Training validation for epoch {}: {}".format(epoch + 1, val_accuracy))
+        print("Training time for this epoch: {}".format(time.time() - start_time))
+        start_time = time.time()
+        val_loss, val_accuracy = validate(model, val_data)
+        print("Validation accuracy for epoch {}: {}".format(epoch + 1, val_accuracy))
+        print("Validation time for this epoch: {}".format(time.time() - start_time))
+        train_loss_history.append(train_loss)
+        train_accuracy_history.append(train_accuracy)
+        val_loss_history.append(val_loss)
+        val_accuracy_history.append(val_accuracy)
+    print("Total time to Train")
+    print(time.time()-beg_time)
 
+    print(train_accuracy_history)
+    print(val_accuracy_history)
+    print(train_loss_history)
+    print(val_loss_history)
+
+    print("Number of Parameters")
     # Number of parameters
     pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     for p in model.parameters():
@@ -107,21 +126,44 @@ def main(num_epoch = 15):
             print(p.numel())
     print(pytorch_total_params)
 
-    # visualization loss 
+    # training loss 
     iteration_list = [i+1 for i in range(num_epoch)]
     plt.plot(iteration_list,train_loss_history)
     plt.xlabel("Number of iteration")
     plt.ylabel("Training Loss")
     plt.title("RNN: Loss vs Number of iteration")
-    plt.show()
+    #plt.show()
+    plt.savefig('train_loss_history.png')
+    plt.clf()
+    
+    # training accuracy 
+    iteration_list = [i+1 for i in range(num_epoch)]
+    plt.plot(iteration_list,train_accuracy_history)
+    plt.xlabel("Number of iteration")
+    plt.ylabel("Training Accuracy")
+    plt.title("RNN: Accuracy vs Number of iteration")
+    #plt.show()
+    plt.savefig('train_accuracy_history.png')
+    plt.clf()
 
-    # visualization accuracy 
+    # validation loss 
     plt.plot(iteration_list,val_loss_history,color = "red")
     plt.xlabel("Number of iteration")
-    plt.ylabel("Validation loss")
+    plt.ylabel("Validation Loss")
     plt.title("RNN: Loss vs Number of iteration")
     plt.savefig('graph.png')
-    plt.show()
+    #plt.show()
+    plt.savefig('val_loss_history.png')
+    plt.clf()
 
+    # training accuracy 
+    iteration_list = [i+1 for i in range(num_epoch)]
+    plt.plot(iteration_list,val_accuracy_history,color = "red")
+    plt.xlabel("Number of iteration")
+    plt.ylabel("Validation Accuracy")
+    plt.title("RNN: Accuracy vs Number of iteration")
+    #plt.show()
+    plt.savefig('val_accuracy_history.png')
+    plt.clf()
 
 main()
