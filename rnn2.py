@@ -129,9 +129,9 @@ def main(num_epoch = 10):
     # training loss 
     iteration_list = [i+1 for i in range(num_epoch)]
     plt.plot(iteration_list,train_loss_history)
-    plt.xlabel("Number of iteration")
+    plt.xlabel("Number of Epochs")
     plt.ylabel("Training Loss")
-    plt.title("RNN: Loss vs Number of iteration")
+    plt.title("RNN: Loss vs Number of Epochs")
     #plt.show()
     plt.savefig('train_loss_history.png')
     plt.clf()
@@ -139,19 +139,18 @@ def main(num_epoch = 10):
     # training accuracy 
     iteration_list = [i+1 for i in range(num_epoch)]
     plt.plot(iteration_list,train_accuracy_history)
-    plt.xlabel("Number of iteration")
+    plt.xlabel("Number of Epochs")
     plt.ylabel("Training Accuracy")
-    plt.title("RNN: Accuracy vs Number of iteration")
+    plt.title("RNN: Accuracy vs Number of Epochs")
     #plt.show()
     plt.savefig('train_accuracy_history.png')
     plt.clf()
 
     # validation loss 
     plt.plot(iteration_list,val_loss_history,color = "red")
-    plt.xlabel("Number of iteration")
+    plt.xlabel("Number of Epochs")
     plt.ylabel("Validation Loss")
-    plt.title("RNN: Loss vs Number of iteration")
-    plt.savefig('graph.png')
+    plt.title("RNN: Loss vs Number of Epochs")
     #plt.show()
     plt.savefig('val_loss_history.png')
     plt.clf()
@@ -159,9 +158,9 @@ def main(num_epoch = 10):
     # training accuracy 
     iteration_list = [i+1 for i in range(num_epoch)]
     plt.plot(iteration_list,val_accuracy_history,color = "red")
-    plt.xlabel("Number of iteration")
+    plt.xlabel("Number of Epochs")
     plt.ylabel("Validation Accuracy")
-    plt.title("RNN: Accuracy vs Number of iteration")
+    plt.title("RNN: Accuracy vs Number of Epochs")
     #plt.show()
     plt.savefig('val_accuracy_history.png')
     plt.clf()

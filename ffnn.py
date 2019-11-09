@@ -11,6 +11,7 @@ import time
 from tqdm import tqdm
 from data_loader import fetch_data
 import  matplotlib.pyplot as plt
+import os.path
 
 unk = '<UNK>'
 # Consult the PyTorch documentation for information on the functions used below:
@@ -96,6 +97,14 @@ def main(hidden_dim, number_of_epochs):
 	val_loss_history = []
 
 	for epoch in range(number_of_epochs):
+		if os.path.exists("model.pth"):
+			state_dict = torch.load("model.pth")['state_dict']
+			model.load_state_dict(state_dict)
+			print("Successful")
+
+		if(len(train_loss_history)>1 and train_loss_history[-1] < train_loss_history[-2]) and (val_loss_history[-1] > val_loss_history[-2]):
+				break
+
 		model.train()
 		optimizer.zero_grad()
 		loss = None
@@ -175,6 +184,10 @@ def main(hidden_dim, number_of_epochs):
 		print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Validation time for this epoch: {}".format(time.time() - start_time))
 
+		#saving model aftr every epoch
+		path = "model.pth"
+		torch.save({'state_dict': model.state_dict()},path)
+
 	# number of parameters
 	print("Number of parameters")
 	pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -186,11 +199,11 @@ def main(hidden_dim, number_of_epochs):
 	print(train_loss_history)
 	print(train_accuracy_history)
 	print(val_accuracy_history)
-	
+	print(val_loss_history)
     # training loss 
 	iteration_list = [i+1 for i in range(number_of_epochs)]
 	plt.plot(iteration_list,train_loss_history)
-	plt.xlabel("Number of iteration")
+	plt.xlabel("Number of Epochs")
 	plt.ylabel("Training Loss")
 	plt.title("FFNN: Loss vs Number of Epochs")
     #plt.show()
@@ -219,7 +232,7 @@ def main(hidden_dim, number_of_epochs):
 
 	# val accuracy 
 	iteration_list = [i+1 for i in range(number_of_epochs)]
-	plt.plot(iteration_list,val_accuracy_history,color = "red")
+	plt.plot(iteration_list,val_loss_history,color = "red")
 	plt.xlabel("Number of Epochs")
 	plt.ylabel("Validation Loss")
 	plt.title("FFNN: Loss vs Number of Epochs")
