@@ -219,7 +219,7 @@ def main(hidden_dim, number_of_epochs):
 
 	# val accuracy 
 	iteration_list = [i+1 for i in range(number_of_epochs)]
-	plt.plot(iteration_list,val_accuracy_history,color = "red")
+	plt.plot(iteration_list,val_loss_history,color = "red")
 	plt.xlabel("Number of Epochs")
 	plt.ylabel("Validation Loss")
 	plt.title("FFNN: Loss vs Number of Epochs")
