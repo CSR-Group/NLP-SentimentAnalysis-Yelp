@@ -93,6 +93,7 @@ def main(hidden_dim, number_of_epochs):
 	train_accuracy_history = []
 	val_accuracy_history = []
 	train_loss_history = []
+	val_loss_history = []
 
 	for epoch in range(number_of_epochs):
 		model.train()
@@ -156,13 +157,20 @@ def main(hidden_dim, number_of_epochs):
 			# loss = loss / minibatch_size
 			# loss.backward()
 			# optimizer.step()
+		val_tot_loss = None
 		for i in range(N):
 			input_vector, gold_label = valid_data[i]
 			predicted_vector = model(input_vector)
 			predicted_label = torch.argmax(predicted_vector)
 			correct += int(predicted_label == gold_label)
 			total += 1
+			example_loss = model.compute_Loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
+			if val_tot_loss is None:
+				val_tot_loss = example_loss / N
+			else:
+				val_tot_loss += example_loss / N
 		val_accuracy_history.append(correct / total)
+		val_loss_history.append(val_tot_loss)
 		print("Validation completed for epoch {}".format(epoch + 1))
 		print("Validation accuracy for epoch {}: {}".format(epoch + 1, correct / total))
 		print("Validation time for this epoch: {}".format(time.time() - start_time))
@@ -184,7 +192,7 @@ def main(hidden_dim, number_of_epochs):
 	plt.plot(iteration_list,train_loss_history)
 	plt.xlabel("Number of iteration")
 	plt.ylabel("Training Loss")
-	plt.title("FFNN: Loss vs Number of iteration")
+	plt.title("FFNN: Loss vs Number of Epochs")
     #plt.show()
 	plt.savefig('FFFN_train_loss_history.png')
 	plt.clf()
@@ -192,19 +200,29 @@ def main(hidden_dim, number_of_epochs):
     # training accuracy 
 	iteration_list = [i+1 for i in range(number_of_epochs)]
 	plt.plot(iteration_list,train_accuracy_history)
-	plt.xlabel("Number of iteration")
+	plt.xlabel("Number of Epochs")
 	plt.ylabel("Training Accuracy")
-	plt.title("FFNN: Accuracy vs Number of iteration")
+	plt.title("FFNN: Accuracy vs Number of Epochs")
     #plt.show()
 	plt.savefig('FFNN_train_accuracy_history.png')
 	plt.clf()
 
-    # training accuracy 
+    # val accuracy 
 	iteration_list = [i+1 for i in range(number_of_epochs)]
 	plt.plot(iteration_list,val_accuracy_history,color = "red")
-	plt.xlabel("Number of iteration")
+	plt.xlabel("Number of Epochs")
 	plt.ylabel("Validation Accuracy")
-	plt.title("FFNN: Accuracy vs Number of iteration")
+	plt.title("FFNN: Accuracy vs Number of Epochs")
     #plt.show()
 	plt.savefig('FFNN_val_accuracy_history.png')
+	plt.clf()
+
+	# val accuracy 
+	iteration_list = [i+1 for i in range(number_of_epochs)]
+	plt.plot(iteration_list,val_accuracy_history,color = "red")
+	plt.xlabel("Number of Epochs")
+	plt.ylabel("Validation Loss")
+	plt.title("FFNN: Loss vs Number of Epochs")
+    #plt.show()
+	plt.savefig('FFNN_val_loss_history.png')
 	plt.clf()
