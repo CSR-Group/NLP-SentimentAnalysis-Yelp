@@ -8,7 +8,6 @@ import os
 import pickle
 import time
 import vsmlib
-
 from data_loader import fetch_data
 from util import *
 from torch.nn import init
@@ -16,14 +15,13 @@ from tqdm import tqdm
 from torch.autograd import Variable
 import  matplotlib.pyplot as plt
 
-
 class RNN(nn.Module):
     def __init__(self):
         super(RNN, self).__init__()
         self.input_dim = 500
-        self.hidden_dim = 50
+        self.hidden_dim = 64
         self.output_dim = 5
-        self.num_rnn_layers = 1
+        self.num_rnn_layers = 2
         self.nonlinearity = 'relu'
         self.log_softmax = nn.LogSoftmax()
         self.loss = nn.NLLLoss()
@@ -88,6 +86,7 @@ def validate(model, val_data):
 
 def main(num_epoch = 10):
     beg_time = time.time()
+    count = 0
     train_data,val_data = getTrainingAndValData()
     model = RNN()
     optimizer = optim.Adagrad(model.parameters(),lr=0.01)
@@ -96,6 +95,16 @@ def main(num_epoch = 10):
     train_loss_history = []
     val_loss_history = []
     for epoch in range(num_epoch):
+
+        # if os.path.exists("rnnmodel.pth"):
+        #     state_dict = torch.load("model.pth")['state_dict']
+        #     model.load_state_dict(state_dict)
+        #     print("Successful")
+
+        if len(train_loss_history)>1 and (train_loss_history[-1] < val_loss_history[-1]) and (train_loss_history[-1] < train_loss_history[-2]) and (val_loss_history[-1] > val_loss_history[-2]):
+            break
+        
+        count += 1
         model.train()
         optimizer.zero_grad()
         start_time = time.time()
@@ -110,6 +119,11 @@ def main(num_epoch = 10):
         train_accuracy_history.append(train_accuracy)
         val_loss_history.append(val_loss)
         val_accuracy_history.append(val_accuracy)
+
+		#saving model aftr every epoch
+        # path = "rnnmodel.pth"
+        # torch.save({'state_dict': model.state_dict()},path)
+    
     print("Total time to Train")
     print(time.time()-beg_time)
 
@@ -127,7 +141,7 @@ def main(num_epoch = 10):
     print(pytorch_total_params)
 
     # training loss 
-    iteration_list = [i+1 for i in range(num_epoch)]
+    iteration_list = [i+1 for i in range(count)]
     plt.plot(iteration_list,train_loss_history)
     plt.xlabel("Number of Epochs")
     plt.ylabel("Training Loss")
@@ -136,8 +150,7 @@ def main(num_epoch = 10):
     plt.savefig('train_loss_history.png')
     plt.clf()
     
-    # training accuracy 
-    iteration_list = [i+1 for i in range(num_epoch)]
+    # training accuracy
     plt.plot(iteration_list,train_accuracy_history)
     plt.xlabel("Number of Epochs")
     plt.ylabel("Training Accuracy")
@@ -155,8 +168,7 @@ def main(num_epoch = 10):
     plt.savefig('val_loss_history.png')
     plt.clf()
 
-    # training accuracy 
-    iteration_list = [i+1 for i in range(num_epoch)]
+    # training accuracy
     plt.plot(iteration_list,val_accuracy_history,color = "red")
     plt.xlabel("Number of Epochs")
     plt.ylabel("Validation Accuracy")

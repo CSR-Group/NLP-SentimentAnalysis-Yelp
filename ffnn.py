@@ -102,7 +102,7 @@ def main(hidden_dim, number_of_epochs):
 			model.load_state_dict(state_dict)
 			print("Successful")
 
-		if(len(train_loss_history)>1 and train_loss_history[-1] < train_loss_history[-2]) and (val_loss_history[-1] > val_loss_history[-2]):
+		if len(train_loss_history)>1 and (train_loss_history[-1] < val_loss_history[-1]) and (train_loss_history[-1] < train_loss_history[-2]) and (val_loss_history[-1] > val_loss_history[-2]):
 				break
 
 		model.train()
